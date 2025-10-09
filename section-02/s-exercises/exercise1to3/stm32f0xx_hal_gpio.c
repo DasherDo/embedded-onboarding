@@ -237,6 +237,15 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 				otyper_pins |= ((GPIO_Init->Mode & (0x1 << 4) >> 4) << (cur_pin));
 				GPIOx->OTYPER = otyper_pins;
 			}
+
+			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_ANALOG)
+			{
+
+				uint32_t pupdr_pins = GPIOx->PUPDR;
+				pupdr_pins &= ~(0x3 << (cur_pin * 2));
+				pupdr_pins |= GPIO_Init->Pull << (cur_pin * 2);
+				GPIOx->PUPDR = pupdr_pins;
+			}
 		}
 	}
 }
