@@ -116,7 +116,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_hal.h"
-typedef __uint32_t uint32_t;
 
 /** @addtogroup STM32F0xx_HAL_Driver
  * @{
@@ -225,7 +224,7 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 				uint32_t ospeedr_pins = GPIOx->OSPEEDR;
 
 				// Clear specific pins related to speed
-				ospeedr_pins &= ~(0x3 << (cur_pin * 2));
+				ospeedr_pins &= ~(0b11 << (cur_pin * 2));
 
 				// 2 bits for speed for each pin, get specific mask for current pin
 				ospeedr_pins |= (GPIO_Init->Speed << (cur_pin * 2));
@@ -233,8 +232,8 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 
 				// Configure output type
 				uint32_t otyper_pins = GPIOx->OTYPER;
-				otyper_pins &= ~(0x1 << cur_pin);
-				otyper_pins |= ((GPIO_Init->Mode & (0x1 << 4) >> 4) << (cur_pin));
+				otyper_pins &= ~(0b1 << cur_pin);
+				otyper_pins |= ((GPIO_Init->Mode & (0b1 << 4) >> 4) << (cur_pin));
 				GPIOx->OTYPER = otyper_pins;
 			}
 
@@ -242,9 +241,31 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 			{
 
 				uint32_t pupdr_pins = GPIOx->PUPDR;
-				pupdr_pins &= ~(0x3 << (cur_pin * 2));
+				pupdr_pins &= ~(0b11 << (cur_pin * 2));
 				pupdr_pins |= GPIO_Init->Pull << (cur_pin * 2);
 				GPIOx->PUPDR = pupdr_pins;
+			}
+
+			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF)
+			{
+
+				uint32_t afr_reg;
+				if (cur_pin > 7)
+				{
+					afr_reg = 1;
+				}
+				else
+				{
+					afr_reg = 0;
+				}
+				uint32_t afr_pins = GPIOx->AFR[afr_reg];
+				// Selects the current pins in register, mod 8 to account for low v high afr reg, *4 because each pin corresponds to 4 afr bits
+				uint32_t pins_in_reg = cur_pin % 8 * 4;
+				afr_pins &= ~(0b1111 << pins_in_reg);
+				afr_pins |= (GPIO_Init->Alternate << pins_in_reg);
+				GPIOx->AFR[afr_reg] = afr_pins
+
+				// Clear afr pins
 			}
 		}
 	}
