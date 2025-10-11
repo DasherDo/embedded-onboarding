@@ -459,16 +459,16 @@ GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
 					   GPIO_PinState PinState)
 {
-	/* Check the parameters */
-	assert_param(IS_GPIO_PIN(GPIO_Pin));
-	assert_param(IS_GPIO_PIN_ACTION(PinState));
-
-	if (PinState != GPIO_PIN_RESET)
+	// To set ODR, modify bit set/reset reg and bit reset reg
+	if (PinState == GPIO_PIN_SET)
 	{
+		// Have to cast GPIO pin to 32 bit
+		// When setting, modify BSRR
 		GPIOx->BSRR = (uint32_t)GPIO_Pin;
 	}
-	else
+	else if (PinState == GPIO_PIN_RESET)
 	{
+		// When resetting, modify BRR
 		GPIOx->BRR = (uint32_t)GPIO_Pin;
 	}
 }
