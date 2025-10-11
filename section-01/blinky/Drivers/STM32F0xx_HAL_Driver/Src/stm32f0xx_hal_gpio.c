@@ -459,17 +459,18 @@ GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
 					   GPIO_PinState PinState)
 {
-	/* Check the parameters */
-	assert_param(IS_GPIO_PIN(GPIO_Pin));
-	assert_param(IS_GPIO_PIN_ACTION(PinState));
-
-	if (PinState != GPIO_PIN_RESET)
+	// To set ODR, modify bit set/reset reg and bit reset reg
+	if (PinState == GPIO_PIN_RESET)
 	{
-		GPIOx->BSRR = (uint32_t)GPIO_Pin;
+		// Have to cast GPIO pin to 32 bit
+		// When setting, modify lower 16 bits of BSRR
+		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16;
 	}
-	else
+	else if (PinState != GPIO_PIN_RESET)
 	{
-		GPIOx->BRR = (uint32_t)GPIO_Pin;
+		// When resetting, modify upper 16 bits of BSRR
+
+		GPIOx->BSRR = (uint32_t)GPIO_Pin;
 	}
 }
 
@@ -482,16 +483,15 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
  */
 void HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
 {
-	uint32_t odr;
+	uint32_t cur_pins = GPIOx->ODR;
 
-	/* Check the parameters */
-	assert_param(IS_GPIO_PIN(GPIO_Pin));
+	// Resets pins in low register by shifting to high reg
+	uint32_t reset_pins = ((cur_pins & GPIO_Pin) << 16);
 
-	/* get current Output Data Register value */
-	odr = GPIOx->ODR;
+	// Sets pins in high reg by copying to low reg
+	uint32_t set_pins = (~cur_pins) & GPIO_Pin;
 
-	/* Set selected pins that were at low level, and reset ones that were high */
-	GPIOx->BSRR = ((odr & GPIO_Pin) << GPIO_NUMBER) | (~odr & GPIO_Pin);
+	GPIOx->BSRR = reset_pins | set_pins;
 }
 
 /**
