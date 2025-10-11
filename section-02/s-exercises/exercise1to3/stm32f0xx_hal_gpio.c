@@ -217,7 +217,7 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 		if ((GPIO_Init->Pin & (0b1 << cur_pin)))
 		{
 			// GPIO_MODE is a mask for the mode pins
-			if (((GPIO_Init->Mode && GPIO_MODE) == MODE_OUTPUT) || ((GPIO_Init->Mode && GPIO_MODE) == MODE_AF))
+			if (((GPIO_Init->Mode & GPIO_MODE) == MODE_OUTPUT) || ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF))
 			{
 
 				// Configure speed
@@ -233,7 +233,7 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 				// Configure output type
 				uint32_t otyper_pins = GPIOx->OTYPER;
 				otyper_pins &= ~(0b1 << cur_pin);
-				otyper_pins |= ((GPIO_Init->Mode & (0b1 << 4) >> 4) << (cur_pin));
+				otyper_pins |= (((GPIO_Init->Mode >> 4) & 0x1) << (cur_pin));
 				GPIOx->OTYPER = otyper_pins;
 			}
 
@@ -260,12 +260,70 @@ void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
 				}
 				uint32_t afr_pins = GPIOx->AFR[afr_reg];
 				// Selects the current pins in register, mod 8 to account for low v high afr reg, *4 because each pin corresponds to 4 afr bits
-				uint32_t pins_in_reg = cur_pin % 8 * 4;
-				afr_pins &= ~(0b1111 << pins_in_reg);
-				afr_pins |= (GPIO_Init->Alternate << pins_in_reg);
-				GPIOx->AFR[afr_reg] = afr_pins
+				uint32_t pins_in_reg = (cur_pin % 8) * 4;
 
 				// Clear afr pins
+				afr_pins &= ~(0b1111 << pins_in_reg);
+				afr_pins |= (GPIO_Init->Alternate << pins_in_reg);
+				GPIOx->AFR[afr_reg] = afr_pins;
+			}
+
+			uint32_t moder_pins = GPIOx->MODER;
+			moder_pins &= ~(0b11 << (cur_pin * 2));
+			moder_pins |= ((GPIO_Init->Mode & 0b11) << (cur_pin * 2));
+			GPIOx->MODER = moder_pins;
+
+			if ((GPIO_Init->Mode & EXTI_MODE) != 0x00)
+			{
+
+				__HAL_RCC_SYSCFG_CLK_ENABLE();
+				// 4 exti regs responsible for 4 pins each, 4 bits / pin
+				uint32_t exti_reg = cur_pin / 4;
+				uint32_t pins_in_reg = 4 * (cur_pin % 4);
+
+				// Configure icr pins
+				uint32_t config_pins = SYSCFG->EXTICR[exti_reg];
+				config_pins &= ~(0b1111 << (pins_in_reg));
+
+				// Gets current gpio port as number, last 3 bits used for selecting port when configuring exti
+				config_pins |= (GPIO_GET_INDEX(GPIOx) << pins_in_reg);
+				SYSCFG->EXTICR[exti_reg] = config_pins;
+
+				// Configure interrupt mask register
+				config_pins = EXTI->IMR;
+				config_pins &= ~(1 << cur_pin);
+				if ((GPIO_Init->Mode & (0b1 << 16)) != 0)
+				{
+					config_pins |= (1 << cur_pin);
+				}
+
+				EXTI->IMR = config_pins;
+
+				// Configure event mask register
+				config_pins = EXTI->EMR;
+				config_pins &= ~(1 << cur_pin);
+				if ((GPIO_Init->Mode & (0b10 << 16)) != 0)
+				{
+					config_pins |= (1 << cur_pin);
+				}
+				EXTI->EMR = config_pins;
+
+				// Configure rising trigger selection register
+				config_pins = EXTI->RTSR;
+				config_pins &= ~(1 << cur_pin);
+				if ((GPIO_Init->Mode & (0b1 << 20)) != 0)
+				{
+					config_pins |= (1 << cur_pin);
+				}
+				EXTI->RTSR = config_pins;
+
+				config_pins = EXTI->FTSR;
+				config_pins &= ~(1 << cur_pin);
+				if ((GPIO_Init->Mode & (0b10 << 20)) != 0)
+				{
+					config_pins |= (1 << cur_pin);
+				}
+				EXTI->FTSR = config_pins;
 			}
 		}
 	}
