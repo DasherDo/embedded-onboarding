@@ -460,16 +460,17 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
 					   GPIO_PinState PinState)
 {
 	// To set ODR, modify bit set/reset reg and bit reset reg
-	if (PinState == GPIO_PIN_SET)
+	if (PinState == GPIO_PIN_RESET)
 	{
 		// Have to cast GPIO pin to 32 bit
 		// When setting, modify lower 16 bits of BSRR
-		GPIOx->BSRR = (uint32_t)GPIO_Pin;
+		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16;
 	}
-	else if (PinState == GPIO_PIN_RESET)
+	else if (PinState != GPIO_PIN_RESET)
 	{
 		// When resetting, modify upper 16 bits of BSRR
-		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16;
+
+		GPIOx->BSRR = (uint32_t)GPIO_Pin;
 	}
 }
 
