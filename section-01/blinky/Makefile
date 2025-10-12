@@ -60,7 +60,11 @@ Core/Src/syscalls.c
 
 # ASM sources
 ASM_SOURCES =  \
-startup_stm32f030x8.s
+startup_stm32f030x8.s \
+Drivers/STM32F0xx_HAL_Driver/Src/hal_gpio_togglepin.s \
+Drivers/STM32F0xx_HAL_Driver/Src/hal_gpio_writepin.s \
+Drivers/STM32F0xx_HAL_Driver/Src/hal_gpio_init.s
+
 
 # ASM sources
 ASMM_SOURCES = 

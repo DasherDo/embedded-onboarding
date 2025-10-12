@@ -208,126 +208,126 @@ functions
 // }GPIO_InitTypeDef;
 
 // 16 GPIO Pins, each pin is two
-void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
-{
-	// GPIO_Init->Pin is 32 bit, only lower 16 bits hold data
+// void HAL_GPIO_Init(GPIO_TypeDef *GPIOx, GPIO_InitTypeDef *GPIO_Init)
+// {
+// 	// GPIO_Init->Pin is 32 bit, only lower 16 bits hold data
 
-	for (int cur_pin = 0; cur_pin < 16; cur_pin++)
-	{
-		if ((GPIO_Init->Pin & (0b1 << cur_pin)))
-		{
-			// GPIO_MODE is a mask for the mode pins
-			if (((GPIO_Init->Mode & GPIO_MODE) == MODE_OUTPUT) || ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF))
-			{
+// 	for (int cur_pin = 0; cur_pin < 16; cur_pin++)
+// 	{
+// 		if ((GPIO_Init->Pin & (0b1 << cur_pin)))
+// 		{
+// 			// GPIO_MODE is a mask for the mode pins
+// 			if (((GPIO_Init->Mode & GPIO_MODE) == MODE_OUTPUT) || ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF))
+// 			{
 
-				// Configure speed
-				uint32_t ospeedr_pins = GPIOx->OSPEEDR;
+// 				// Configure speed
+// 				uint32_t ospeedr_pins = GPIOx->OSPEEDR;
 
-				// Clear specific pins related to speed
-				ospeedr_pins &= ~(0b11 << (cur_pin * 2));
+// 				// Clear specific pins related to speed
+// 				ospeedr_pins &= ~(0b11 << (cur_pin * 2));
 
-				// 2 bits for speed for each pin, get specific mask for current pin
-				ospeedr_pins |= (GPIO_Init->Speed << (cur_pin * 2));
-				GPIOx->OSPEEDR = ospeedr_pins;
+// 				// 2 bits for speed for each pin, get specific mask for current pin
+// 				ospeedr_pins |= (GPIO_Init->Speed << (cur_pin * 2));
+// 				GPIOx->OSPEEDR = ospeedr_pins;
 
-				// Configure output type
-				uint32_t otyper_pins = GPIOx->OTYPER;
-				otyper_pins &= ~(0b1 << cur_pin);
-				otyper_pins |= (((GPIO_Init->Mode >> 4) & 0x1) << (cur_pin));
-				GPIOx->OTYPER = otyper_pins;
-			}
+// 				// Configure output type
+// 				uint32_t otyper_pins = GPIOx->OTYPER;
+// 				otyper_pins &= ~(0b1 << cur_pin);
+// 				otyper_pins |= (((GPIO_Init->Mode >> 4) & 0x1) << (cur_pin));
+// 				GPIOx->OTYPER = otyper_pins;
+// 			}
 
-			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_ANALOG)
-			{
+// 			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_ANALOG)
+// 			{
 
-				uint32_t pupdr_pins = GPIOx->PUPDR;
-				pupdr_pins &= ~(0b11 << (cur_pin * 2));
-				pupdr_pins |= GPIO_Init->Pull << (cur_pin * 2);
-				GPIOx->PUPDR = pupdr_pins;
-			}
+// 				uint32_t pupdr_pins = GPIOx->PUPDR;
+// 				pupdr_pins &= ~(0b11 << (cur_pin * 2));
+// 				pupdr_pins |= GPIO_Init->Pull << (cur_pin * 2);
+// 				GPIOx->PUPDR = pupdr_pins;
+// 			}
 
-			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF)
-			{
+// 			if ((GPIO_Init->Mode & GPIO_MODE) == MODE_AF)
+// 			{
 
-				uint32_t afr_reg;
-				if (cur_pin > 7)
-				{
-					afr_reg = 1;
-				}
-				else
-				{
-					afr_reg = 0;
-				}
-				uint32_t afr_pins = GPIOx->AFR[afr_reg];
-				// Selects the current pins in register, mod 8 to account for low v high afr reg, *4 because each pin corresponds to 4 afr bits
-				uint32_t pins_in_reg = (cur_pin % 8) * 4;
+// 				uint32_t afr_reg;
+// 				if (cur_pin > 7)
+// 				{
+// 					afr_reg = 1;
+// 				}
+// 				else
+// 				{
+// 					afr_reg = 0;
+// 				}
+// 				uint32_t afr_pins = GPIOx->AFR[afr_reg];
+// 				// Selects the current pins in register, mod 8 to account for low v high afr reg, *4 because each pin corresponds to 4 afr bits
+// 				uint32_t pins_in_reg = (cur_pin % 8) * 4;
 
-				// Clear afr pins
-				afr_pins &= ~(0b1111 << pins_in_reg);
-				afr_pins |= (GPIO_Init->Alternate << pins_in_reg);
-				GPIOx->AFR[afr_reg] = afr_pins;
-			}
+// 				// Clear afr pins
+// 				afr_pins &= ~(0b1111 << pins_in_reg);
+// 				afr_pins |= (GPIO_Init->Alternate << pins_in_reg);
+// 				GPIOx->AFR[afr_reg] = afr_pins;
+// 			}
 
-			uint32_t moder_pins = GPIOx->MODER;
-			moder_pins &= ~(0b11 << (cur_pin * 2));
-			moder_pins |= ((GPIO_Init->Mode & 0b11) << (cur_pin * 2));
-			GPIOx->MODER = moder_pins;
+// 			uint32_t moder_pins = GPIOx->MODER;
+// 			moder_pins &= ~(0b11 << (cur_pin * 2));
+// 			moder_pins |= ((GPIO_Init->Mode & 0b11) << (cur_pin * 2));
+// 			GPIOx->MODER = moder_pins;
 
-			if ((GPIO_Init->Mode & EXTI_MODE) != 0x00)
-			{
+// 			if ((GPIO_Init->Mode & EXTI_MODE) != 0x00)
+// 			{
 
-				__HAL_RCC_SYSCFG_CLK_ENABLE();
-				// 4 exti regs responsible for 4 pins each, 4 bits / pin
-				uint32_t exti_reg = cur_pin / 4;
-				uint32_t pins_in_reg = 4 * (cur_pin % 4);
+// 				__HAL_RCC_SYSCFG_CLK_ENABLE();
+// 				// 4 exti regs responsible for 4 pins each, 4 bits / pin
+// 				uint32_t exti_reg = cur_pin / 4;
+// 				uint32_t pins_in_reg = 4 * (cur_pin % 4);
 
-				// Configure icr pins
-				uint32_t config_pins = SYSCFG->EXTICR[exti_reg];
-				config_pins &= ~(0b1111 << (pins_in_reg));
+// 				// Configure icr pins
+// 				uint32_t config_pins = SYSCFG->EXTICR[exti_reg];
+// 				config_pins &= ~(0b1111 << (pins_in_reg));
 
-				// Gets current gpio port as number, last 3 bits used for selecting port when configuring exti
-				config_pins |= (GPIO_GET_INDEX(GPIOx) << pins_in_reg);
-				SYSCFG->EXTICR[exti_reg] = config_pins;
+// 				// Gets current gpio port as number, last 3 bits used for selecting port when configuring exti
+// 				config_pins |= (GPIO_GET_INDEX(GPIOx) << pins_in_reg);
+// 				SYSCFG->EXTICR[exti_reg] = config_pins;
 
-				// Configure interrupt mask register
-				config_pins = EXTI->IMR;
-				config_pins &= ~(1 << cur_pin);
-				if ((GPIO_Init->Mode & (0b1 << 16)) != 0)
-				{
-					config_pins |= (1 << cur_pin);
-				}
+// 				// Configure interrupt mask register
+// 				config_pins = EXTI->IMR;
+// 				config_pins &= ~(1 << cur_pin);
+// 				if ((GPIO_Init->Mode & (0b1 << 16)) != 0)
+// 				{
+// 					config_pins |= (1 << cur_pin);
+// 				}
 
-				EXTI->IMR = config_pins;
+// 				EXTI->IMR = config_pins;
 
-				// Configure event mask register
-				config_pins = EXTI->EMR;
-				config_pins &= ~(1 << cur_pin);
-				if ((GPIO_Init->Mode & (0b10 << 16)) != 0)
-				{
-					config_pins |= (1 << cur_pin);
-				}
-				EXTI->EMR = config_pins;
+// 				// Configure event mask register
+// 				config_pins = EXTI->EMR;
+// 				config_pins &= ~(1 << cur_pin);
+// 				if ((GPIO_Init->Mode & (0b10 << 16)) != 0)
+// 				{
+// 					config_pins |= (1 << cur_pin);
+// 				}
+// 				EXTI->EMR = config_pins;
 
-				// Configure rising trigger selection register
-				config_pins = EXTI->RTSR;
-				config_pins &= ~(1 << cur_pin);
-				if ((GPIO_Init->Mode & (0b1 << 20)) != 0)
-				{
-					config_pins |= (1 << cur_pin);
-				}
-				EXTI->RTSR = config_pins;
+// 				// Configure rising trigger selection register
+// 				config_pins = EXTI->RTSR;
+// 				config_pins &= ~(1 << cur_pin);
+// 				if ((GPIO_Init->Mode & (0b1 << 20)) != 0)
+// 				{
+// 					config_pins |= (1 << cur_pin);
+// 				}
+// 				EXTI->RTSR = config_pins;
 
-				config_pins = EXTI->FTSR;
-				config_pins &= ~(1 << cur_pin);
-				if ((GPIO_Init->Mode & (0b10 << 20)) != 0)
-				{
-					config_pins |= (1 << cur_pin);
-				}
-				EXTI->FTSR = config_pins;
-			}
-		}
-	}
-}
+// 				config_pins = EXTI->FTSR;
+// 				config_pins &= ~(1 << cur_pin);
+// 				if ((GPIO_Init->Mode & (0b10 << 20)) != 0)
+// 				{
+// 					config_pins |= (1 << cur_pin);
+// 				}
+// 				EXTI->FTSR = config_pins;
+// 			}
+// 		}
+// 	}
+// }
 
 /**
  * @brief  De-initialize the GPIOx peripheral registers to their default reset
@@ -456,23 +456,23 @@ GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
  *            @arg GPIO_PIN_SET: to set the port pin
  * @retval None
  */
-void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
-					   GPIO_PinState PinState)
-{
-	// To set ODR, modify bit set/reset reg and bit reset reg
-	if (PinState == GPIO_PIN_RESET)
-	{
-		// Have to cast GPIO pin to 32 bit
-		// When setting, modify lower 16 bits of BSRR
-		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16;
-	}
-	else if (PinState != GPIO_PIN_RESET)
-	{
-		// When resetting, modify upper 16 bits of BSRR
+// void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
+// 					   GPIO_PinState PinState)
+// {
+// 	// To set ODR, modify bit set/reset reg and bit reset reg
+// 	if (PinState == GPIO_PIN_RESET)
+// 	{
+// 		// Have to cast GPIO pin to 32 bit
+// 		// When setting, modify lower 16 bits of BSRR
+// 		GPIOx->BSRR = (uint32_t)GPIO_Pin << 16;
+// 	}
+// 	else if (PinState != GPIO_PIN_RESET)
+// 	{
+// 		// When resetting, modify upper 16 bits of BSRR
 
-		GPIOx->BSRR = (uint32_t)GPIO_Pin;
-	}
-}
+// 		GPIOx->BSRR = (uint32_t)GPIO_Pin;
+// 	}
+// }
 
 /**
  * @brief  Toggle the specified GPIO pin.
@@ -481,18 +481,18 @@ void HAL_GPIO_WritePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin,
  * @param  GPIO_Pin specifies the pin to be toggled.
  * @retval None
  */
-void HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
-{
-	uint32_t cur_pins = GPIOx->ODR;
+// void HAL_GPIO_TogglePin(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin)
+// {
+// 	uint32_t cur_pins = GPIOx->ODR;
 
-	// Resets pins in low register by shifting to high reg
-	uint32_t reset_pins = ((cur_pins & GPIO_Pin) << 16);
+// 	// Resets pins in low register by shifting to high reg
+// 	uint32_t reset_pins = ((cur_pins & GPIO_Pin) << 16);
 
-	// Sets pins in high reg by copying to low reg
-	uint32_t set_pins = (~cur_pins) & GPIO_Pin;
+// 	// Sets pins in high reg by copying to low reg
+// 	uint32_t set_pins = (~cur_pins) & GPIO_Pin;
 
-	GPIOx->BSRR = reset_pins | set_pins;
-}
+// 	GPIOx->BSRR = reset_pins | set_pins;
+// }
 
 /**
  * @brief  Locks GPIO Pins configuration registers.
