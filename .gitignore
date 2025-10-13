@@ -68,3 +68,7 @@ build/
 !**/callback/main.c
 **/exti/
 !**/exti/main.c
+
+**/section-03/exercise*/*
+!**/section-03/exercise*/
+!**/section-03/exercise*/Core
