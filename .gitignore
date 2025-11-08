@@ -72,5 +72,9 @@ build/
 **/section-03/exercise*/*
 !**/section-03/exercise*/
 !**/section-03/exercise*/Core
+<<<<<<< HEAD
+=======
+
+>>>>>>> f50a4598324f6912af768f55de2035b88e4f64c8
 **/section-04/rtos*/*
 !**/section-04/rtos*/Core
