@@ -1,9 +1,18 @@
 #include "filter.h"
 
-int convolve(buffer *buf, int kernel[], int buf_len, int kern_len)
+void convolve(buffer *input, float *kernel, uint32_t kern_len, float *output)
 {
-	int convolution[buf_len + 1];
-	for (int i = 0; i < buf_len; i++)
+	uint16_t out_len = input->len + kern_len - 1;
+	for (uint16_t i = 0; i < out_len; i++)
 	{
+		output[i] = 0.0f;
+	}
+
+	for (uint16_t i = 0; i < input->len; i++)
+	{
+		for (uint16_t j = 0; j < kern_len; j++)
+		{
+			output[i + j] += input->data[i] * kernel[kern_len - 1 - j];
+		}
 	}
 }

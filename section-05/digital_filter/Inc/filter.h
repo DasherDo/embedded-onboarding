@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct
 {
 	bool full;
 	int len;
-	int arr[];
+	float *data;
 } buffer;
 
 float kernel[1024] = {1 / 2};
@@ -24,6 +26,6 @@ int generate_delta();
 
 int generate_sine();
 
-int convolve(buffer *buf);
+int convolve(buffer *buf, int *kernel, uint32_t kern_len, float *output);
 
 #endif
