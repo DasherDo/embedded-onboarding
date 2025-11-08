@@ -6,26 +6,35 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <math.h>
 
+#define BUFFER_SIZE 256
+#define KERNEL_SIZE 10
+#define PI 3.1415926f
+#define DIGITAL_FREQ 0.1f
 typedef struct
 {
 	bool full;
-	int len;
-	float *data;
+	uint16_t len;
+	float data[BUFFER_SIZE];
 } buffer;
 
-float kernel[1024] = {1 / 2};
+extern float kernel[KERNEL_SIZE];
 
-int add_to_buffer(buffer *buf, int val);
+void init_buf(buffer *buf);
+
+void add_to_buffer(buffer *buf, float val);
 
 int clear_buffer(buffer *buf);
 
 int *get_coefficients(buffer *buf);
 
-int generate_delta();
+void generate_delta(buffer *buf);
 
-int generate_sine();
+void generate_sine(buffer *buf);
 
-int convolve(buffer *buf, int *kernel, uint32_t kern_len, float *output);
+void convolve(buffer *buf, int *kernel, uint32_t kern_len, float *output);
+
+float process(buffer *buf);
 
 #endif
