@@ -2,8 +2,12 @@
 
 float kernel[KERNEL_SIZE] = {1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f, 1.0f / 8.0f};
 
-void convolve(buffer *input, float *output)
+uint16_t convolve(buffer *input, float *output)
 {
+	if (!input->full)
+	{
+		return 0;
+	}
 	uint16_t out_len = input->len + KERNEL_SIZE - 1;
 	for (uint16_t i = 0; i < out_len; i++)
 	{
@@ -17,6 +21,7 @@ void convolve(buffer *input, float *output)
 			output[i + j] += input->data[i] * kernel[KERNEL_SIZE - 1 - j];
 		}
 	}
+	return 1;
 }
 
 void init_buf(buffer *buf)

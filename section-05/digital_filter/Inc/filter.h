@@ -33,7 +33,7 @@ void generate_delta(buffer *buf);
 
 void generate_sine(buffer *buf);
 
-void convolve(buffer *buf, float *output);
+uint16_t convolve(buffer *buf, float *output);
 
 float process(buffer *buf);
 
