@@ -9,7 +9,7 @@
 #include <math.h>
 
 #define BUFFER_SIZE 256
-#define KERNEL_SIZE 10
+#define KERNEL_SIZE 8
 #define PI 3.1415926f
 #define DIGITAL_FREQ 0.1f
 typedef struct
@@ -33,7 +33,7 @@ void generate_delta(buffer *buf);
 
 void generate_sine(buffer *buf);
 
-void convolve(buffer *buf, int *kernel, uint32_t kern_len, float *output);
+void convolve(buffer *buf, float *output);
 
 float process(buffer *buf);
 
