@@ -72,3 +72,5 @@ build/
 **/section-03/exercise*/*
 !**/section-03/exercise*/
 !**/section-03/exercise*/Core
+**/section-04/rtos*/*
+!**/section-04/rtos*/Core
